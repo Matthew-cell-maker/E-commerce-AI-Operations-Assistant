@@ -1,7 +1,7 @@
 # 电商运营助手
 
 一款基于本地大模型的 Windows 电商内容运营助手，支持商品文案、工作汇报、短视频脚本和 PDF 知识库检索。  
-[从 GitHub Releases 下载最新版](https://github.com/Matthew-cell-maker/E-commerce-AI-Operations-Assistant/releases/latest/download/E-commerce%20Operations%20Assistant_Installer.exe)
+[从 GitHub Releases 下载最新版](https://github.com/Matthew-cell-maker/E-commerce-AI-Operations-Assistant/releases/latest/download/E-commerce.Operations.Assistant_Installer.exe)
 
 ## 主要功能
 
