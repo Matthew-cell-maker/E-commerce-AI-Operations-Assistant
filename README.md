@@ -1,7 +1,7 @@
-[README.md](https://github.com/user-attachments/files/31881693/README.md)
 # 电商运营助手
 
-一款基于本地大模型的 Windows 电商内容运营助手，支持商品文案、工作汇报、短视频脚本和 PDF 知识库检索。
+一款基于本地大模型的 Windows 电商内容运营助手，支持商品文案、工作汇报、短视频脚本和 PDF 知识库检索。  
+[从 GitHub Releases 下载最新版](https://github.com/Matthew-cell-maker/E-commerce-AI-Operations-Assistant/releases/latest/download/E-commerce%20Operations%20Assistant_Installer.exe)
 
 ## 主要功能
 
@@ -14,18 +14,52 @@
 - 本地 Ollama 推理，不依赖云端 API
 - 根据显卡显存选择合适的模型档位
 
-## 运行环境
+## 系统架构
+
+```mermaid
+flowchart LR
+    User[用户] --> UI[主窗口\nmain_window.pyw]
+
+    UI --> Prompt[prompts.py\n提示词构建]
+    UI --> Service[ollama_service.py\n服务与模型状态]
+    UI --> RAG[rag_manager.py\nPDF 知识库]
+    UI --> License[license_core.py\n授权验证]
+
+    Service --> Ollama[本地 Ollama\nollama.exe + lib]
+    Prompt --> Ollama
+    RAG --> Embed[nomic-embed-text\n向量模型]
+    Embed --> Ollama
+    RAG --> Vector[(Chroma 向量库)]
+    RAG --> Docs[(本地 PDF 文档)]
+    Ollama --> Models[(Qwen 2.5 模型)]
+
+    Data[(C:\\ProgramData\\EcomAssistant)]
+    Vector --> Data
+    Docs --> Data
+    Models --> Data
+    License --> Data
+```
+
+程序默认在本机完成文本生成、PDF 向量化和知识库检索；运行数据统一保存在 `C:\ProgramData\EcomAssistant`。
+
+## 安装与运行
+
+### 运行环境
 
 - Windows 10/11，64 位
-- 建议至少 8 GB 内存
-- 模型运行需要足够的磁盘空间和显存；没有独立显卡时也可以使用 CPU，但速度会较慢
+- 建议内存不低于 8 GB
+- 需要预留模型文件和运行缓存空间
 
-## 安装使用
+当前 0123 版本为 NVIDIA/CPU/Vulkan 版本，因为加上AMD ROCm 运行库安装包大小超出限制无法上传，所以不包含 AMD ROCm 运行库；AMD 显卡用户需要使用包含 ROCm 的专用版本。
+AMD 显卡用户需要使用请联系邮箱zhengmx2000@gmail.com。
 
-1. 下载 `电商运营助手_安装程序.exe`。
-2. 使用纯英文路径安装，例如 `C:\Program Files\EcomAssistant`。
-3. 首次启动时选择模型档位，等待模型下载完成。
-4. 输入商品名称或主题，选择功能模块后点击生成。
+### 安装步骤
+
+1. 前往项目发布页下载最新 Windows 安装包。
+2. 双击 `电商运营助手_安装程序.exe`。
+3. 按安装向导完成安装，建议使用纯英文安装路径，例如 `C:\Program Files\EcomAssistant`。
+4. 从桌面快捷方式或开始菜单启动“电商运营 AI 助手”。
+5. 首次启动时选择模型档位，等待模型下载完成后即可输入商品名称或主题并生成内容。
 
 模型默认保存到：
 
@@ -55,14 +89,56 @@ C:\ProgramData\EcomAssistant\models
 ## 项目结构
 
 ```text
-main_window.pyw     主窗口和用户交互
-rag_manager.py      PDF 导入与知识库检索
-ollama_service.py   Ollama 服务与模型查询
-prompts.py          内容生成提示词
-license_core.py     本地授权验证
-build_app.spec      PyInstaller 打包配置
-installer.iss       Inno Setup 安装配置
+源码与构建文件/
+├─ main_window.pyw      主窗口和用户交互
+├─ rag_manager.py       PDF 导入与知识库检索
+├─ ollama_service.py    Ollama 服务与模型查询
+├─ prompts.py           内容生成提示词
+├─ license_core.py      本地授权验证
+├─ build_app.spec       PyInstaller 打包配置
+├─ installer.iss        Inno Setup 安装配置
+├─ logo.ico             应用图标
+└─ README.md            项目说明
+
+电商运营助手/
+├─ 电商运营助手.exe    免安装启动程序
+├─ ollama.exe           本地 Ollama 引擎
+├─ lib/                 Ollama 推理运行库
+└─ _internal/           PyInstaller 运行依赖
 ```
+
+源码目录用于开发和重新构建；`电商运营助手` 目录是可直接运行的免安装版本；`电商运营助手_安装程序.exe` 是推荐发给普通用户的安装版本。
+
+## 常见问题
+
+### 模型未下载或下载失败
+
+首次启动需要下载 Qwen 模型和 `nomic-embed-text` 向量模型。请确认网络正常、磁盘空间充足，并在模型下载窗口完成后再使用。模型默认保存到：
+
+```text
+C:\ProgramData\EcomAssistant\models
+```
+
+如果下载中途取消，重新打开程序即可继续检查并下载缺少的模型。
+
+### Ollama 未启动
+
+程序会优先复用本机已有的 Ollama 服务；没有可用服务时，会启动安装目录中的 `ollama.exe`。如果提示端口 `11434` 被占用，请先关闭占用该端口的程序，或确认已有 Ollama 服务能够正常响应。
+
+请不要单独删除以下文件：
+
+```text
+ollama.exe
+lib\ollama\
+```
+
+### 内存或显存不足
+
+请在首次启动时选择较小的模型档位。`qwen2.5:1.5b` 占用资源最少，`qwen2.5:7b` 生成质量更好但需要更多内存和显存。没有独立显卡时可以使用 CPU，但生成速度会明显变慢。运行期间请关闭占用大量内存的其他程序，并确保系统盘有足够空间。
+
+### PDF 无法导入
+
+仅支持有效的文字型 PDF，单个文件最大 100 MB、最多 500 页。扫描版 PDF 需要先进行 OCR；加密 PDF 需要先解除密码保护。
 
 ## 隐私说明
 
